@@ -2,10 +2,34 @@ import streamlit as st
 import numpy as np
 import random
 
-st.set_page_config(page_title="2048", layout="centered")
-st.title("2048 Game")
+st.set_page_config(page_title="2048 Game", layout="centered")
+st.markdown("""
+    <style>
+        .tile {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 6vw;
+            border-radius: 0.5rem;
+            color: #776e65;
+        }
+        .board-row {
+            display: flex;
+            gap: 1vw;
+            margin-bottom: 1vw;
+        }
+        .board-container {
+            max-width: 90vw;
+            margin: auto;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-# Initialize game state
+st.title("2048 (Responsive)")
+
 if "grid" not in st.session_state:
     st.session_state.grid = np.zeros((4, 4), dtype=int)
     for _ in range(2):
@@ -13,25 +37,26 @@ if "grid" not in st.session_state:
         st.session_state.grid[i][j] = random.choice([2, 4])
 
 
-def draw_board():
-    for row in st.session_state.grid:
-        cols = st.columns(4)
-        for i, val in enumerate(row):
-            tile_style = f"background-color: {get_color(val)}; height: 100px; border-radius: 10px; text-align: center; font-size: 32px; line-height: 100px; color: {get_font_color(val)};"
-            cols[i].markdown(f"<div style='{tile_style}'>{val if val != 0 else ''}</div>", unsafe_allow_html=True)
-
-
-def get_color(value):
+def get_tile_color(val):
     return {
         0: '#cdc1b4', 2: '#eee4da', 4: '#ede0c8',
-        8: '#f2b179', 16: '#f59563', 32: '#f67c5f', 64: '#f65e3b',
-        128: '#edcf72', 256: '#edcc61', 512: '#edc850',
-        1024: '#edc53f', 2048: '#edc22e'
-    }.get(value, '#3c3a32')
+        8: '#f2b179', 16: '#f59563', 32: '#f67c5f',
+        64: '#f65e3b', 128: '#edcf72', 256: '#edcc61',
+        512: '#edc850', 1024: '#edc53f', 2048: '#edc22e'
+    }.get(val, '#3c3a32')
 
 
-def get_font_color(value):
-    return '#776e65' if value <= 4 else '#f9f6f2'
+def draw_board():
+    st.markdown('<div class="board-container">', unsafe_allow_html=True)
+    for row in st.session_state.grid:
+        st.markdown('<div class="board-row">', unsafe_allow_html=True)
+        cols = st.columns(4)
+        for i, val in enumerate(row):
+            bg = get_tile_color(val)
+            txt = str(val) if val != 0 else ""
+            cols[i].markdown(f'<div class="tile" style="background-color: {bg};">{txt}</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 def add_random_tile():
@@ -86,25 +111,23 @@ def move(direction):
         add_random_tile()
 
 
-col1, col2, col3, col4 = st.columns(4)
-if col1.button("⬅️"):
-    move('left')
-if col2.button("➡️"):
-    move('right')
-if col3.button("⬆️"):
-    move('up')
-if col4.button("⬇️"):
-    move('down')
-
-if st.button("🔁 Restart"):
+def reset():
     st.session_state.grid = np.zeros((4, 4), dtype=int)
     for _ in range(2):
         i, j = random.choice(list(zip(*np.where(st.session_state.grid == 0))))
         st.session_state.grid[i][j] = random.choice([2, 4])
 
-st.write("""
-Use the arrow buttons to play. Your goal is to reach **2048**! 🎯
-""")
+cols = st.columns([1, 1, 1, 1])
+if cols[0].button("⬅️"):
+    move('left')
+if cols[1].button("➡️"):
+    move('right')
+if cols[2].button("⬆️"):
+    move('up')
+if cols[3].button("⬇️"):
+    move('down')
+
+st.button("🔁 Restart Game", on_click=reset)
 
 st.markdown("---")
 draw_board()
