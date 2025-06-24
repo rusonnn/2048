@@ -6,8 +6,8 @@ st.set_page_config(page_title="2048 Game", layout="centered")
 st.markdown("""
     <style>
         .tile {
-            width: 100%;
-            height: 100%;
+            width: 10%;
+            height: 10%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -34,7 +34,7 @@ st.markdown("""
                 font-size: 1.5vw;
             }
             .board-container {
-                max-width: 320px;
+                max-width: 50vw;
             }
         }
     </style>
