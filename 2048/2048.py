@@ -4,59 +4,41 @@ import random
 
 st.set_page_config(page_title="2048 Game", layout="centered")
 st.markdown("""
-   <style>
-        .board-container {
-            width: 90vw;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 2vw 0;
-        }
-        .board-row {
-            display: flex;
-        }
-        .cell {
-            flex: 1 1 0%;
-            aspect-ratio: 1 / 1;
-            margin: 2px;
-        }
+    <style>
         .tile {
-            width: 100%;
-            height: 100%;
+            width: 70px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 6vw;
-            min-height: 0;
-            min-width: 0;
+            font-size: 20px;
             border-radius: 0.3rem;
             color: #776e65;
-            box-sizing: border-box;
         }
-        @media (min-width: 500px) {
-            .board-container {
-                width: 400px;
-                max-width: 400px;
-            }
-            .tile {
-                font-size: 2rem;
-            }
+        .board-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .board-container {
+            width: 310px;
+            margin: auto;
+        }
+        .cell {
+            width: 70px;
+            height: 70px;
         }
     </style>
 """, unsafe_allow_html=True)
-st.markdown('<div class="board-container">', unsafe_allow_html=True)
-for row in st.session_state.grid:
-    st.markdown('<div class="board-row">', unsafe_allow_html=True)
-    for val in row:
-        bg = get_tile_color(val)
-        txt = str(val) if val != 0 else ""
-        st.markdown(
-            f'<div class="cell"><div class="tile" style="background-color: {bg};">{txt}</div></div>',
-            unsafe_allow_html=True
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
 
+st.title("2048 (Compact Grid)")
+
+if "grid" not in st.session_state:
+    st.session_state.grid = np.zeros((4, 4), dtype=int)
+    for _ in range(2):
+        i, j = random.choice(list(zip(*np.where(st.session_state.grid == 0))))
+        st.session_state.grid[i][j] = random.choice([2, 4])
 
 
 def get_tile_color(val):
@@ -75,7 +57,7 @@ def draw_board():
         for val in row:
             bg = get_tile_color(val)
             txt = str(val) if val != 0 else ""
-            st.markdown(f'<div class="cell"><div class="tile" style="background-color: {bg};">{txt}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="tile" style="background-color: {bg};">{txt}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
