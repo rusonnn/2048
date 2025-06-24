@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import random
 
-# Initialize session state variables
-if 'grid' not in st.session_state:
+# Initialize game state
+if "grid" not in st.session_state:
     st.session_state.grid = np.zeros((4, 4), dtype=int)
     st.session_state.score = 0
     st.session_state.game_over = False
@@ -17,26 +17,27 @@ if 'grid' not in st.session_state:
 # Configure page
 st.set_page_config(page_title="2048 Game", layout="centered")
 
-# CSS styling for the game
+# CSS styling with proper grid implementation
 st.markdown("""
     <style>
         .game-container {
-            max-width: 500px;
+            width: 100%;
+            max-width: 450px;
             margin: 0 auto;
             padding: 20px;
         }
         .board {
             background-color: #bbada0;
             border-radius: 6px;
-            width: 100%;
-            max-width: 450px;
             padding: 15px;
-            margin: 0 auto 20px;
+            margin-bottom: 20px;
+            position: relative;
         }
-        .grid {
+        .grid-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 15px;
+            width: 100%;
         }
         .cell {
             aspect-ratio: 1;
@@ -60,14 +61,6 @@ st.markdown("""
         .tile-1024 { background-color: #edc53f; color: white; font-size: 25px; }
         .tile-2048 { background-color: #edc22e; color: white; font-size: 25px; }
         
-        @media (max-width: 500px) {
-            .board { padding: 10px; grid-gap: 10px; }
-            .cell { font-size: 25px; }
-            .tile-128, 
-            .tile-256, 
-            .tile-512 { font-size: 22px; }
-        }
-        
         .controls {
             display: flex;
             justify-content: space-between;
@@ -78,6 +71,7 @@ st.markdown("""
             padding: 10px 20px;
             border-radius: 5px;
             color: white;
+            font-weight: bold;
             text-align: center;
         }
         .button-row {
@@ -88,76 +82,115 @@ st.markdown("""
         }
         .game-over {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(238, 228, 218, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(238, 228, 218, 0.73);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            z-index: 100;
+        }
+        .game-over-text {
+            font-size: 60px;
             font-weight: bold;
-            font-size: 24px;
-            width: 80%;
+            color: #776e65;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 500px) {
+            .board { padding: 10px; }
+            .grid-container { grid-gap: 10px; }
+            .cell { font-size: 25px; }
+            .tile-128, .tile-256, .tile-512 { font-size: 22px; }
+            .tile-1024, .tile-2048 { font-size: 18px; }
         }
     </style>
 """, unsafe_allow_html=True)
 
-def draw_board():
-    with st.container():
-        st.markdown('<div class="game-container">', unsafe_allow_html=True)
-        
-        # Score display
-        st.markdown(f"""
-            <div class="controls">
-                <div class="score-box">
-                    <div>SCORE</div>
-                    <div style="font-size: 24px; font-weight: bold;">{st.session_state.score}</div>
-                </div>
-                <button onclick="window.streamlitNativeAPI.showModal('Restart Game')" 
-                    style="background: #8f7a66; color: white; border: none; 
-                    border-radius: 5px; padding: 10px 20px; font-weight: bold;">
-                    New Game
-                </button>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Game board
-        st.markdown('<div class="board">', unsafe_allow_html=True)
-        st.markdown('<div class="grid">', unsafe_allow_html=True)
-        
-        for i in range(4):
-            for j in range(4):
-                val = st.session_state.grid[i][j]
-                tile_class = f"cell tile-{val}" if val > 0 else "cell"
-                txt = str(val) if val != 0 else ""
-                st.markdown(f'<div class="{tile_class}">{txt}</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)  # Close grid
-        st.markdown('</div>', unsafe_allow_html=True)  # Close board
-        
-        # Direction buttons
-        st.markdown("""
-            <div class="button-row">
-                <button onclick="moveDirection('left')">⬅️ Left</button>
-                <button onclick="moveDirection('right')">➡️ Right</button>
-                <button onclick="moveDirection('up')">⬆️ Up</button>
-                <button onclick="moveDirection('down')">⬇️ Down</button>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)  # Close game-container
+# Game title and instructions
+st.title("2048 Game")
+st.write("Combine tiles with the same numbers to reach 2048!")
 
-        # Game over overlay if needed
-        if st.session_state.game_over:
-            st.markdown("""
-                <div class="game-over">
-                    Game Over!<br>
-                    Final Score: """ + str(st.session_state.score) + """<br>
-                    <button onclick="resetGame()" style="margin-top: 10px;">Try Again</button>
-                </div>
-            """, unsafe_allow_html=True)
+# Draw the game board
+def draw_board():
+    st.markdown('<div class="game-container">', unsafe_allow_html=True)
+    
+    # Score and controls
+    st.markdown(f"""
+        <div class="controls">
+            <div class="score-box">
+                <div>SCORE</div>
+                <div>{st.session_state.score}</div>
+            </div>
+            <button onclick="window.streamlitNativeAPI.showModal('Restart Game')" 
+                style="background: #8f7a66; color: white; border: none; 
+                border-radius: 5px; padding: 10px 20px; font-weight: bold;">
+                New Game
+            </button>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Game board
+    st.markdown('<div class="board">', unsafe_allow_html=True)
+    
+    # Grid container - this is where we'll render our tiles
+    grid_html = '<div class="grid-container">'
+    for i in range(4):
+        for j in range(4):
+            val = st.session_state.grid[i][j]
+            tile_class = f"cell tile-{val}" if val > 0 else "cell"
+            txt = str(val) if val != 0 else ""
+            grid_html += f'<div class="{tile_class}">{txt}</div>'
+    grid_html += '</div>'
+    
+    # Game over overlay if needed
+    if st.session_state.game_over:
+        grid_html += """
+        <div class="game-over">
+            <div class="game-over-text">Game Over!</div>
+            <div style="font-size: 24px; margin-bottom: 20px;">Score: """ + str(st.session_state.score) + """</div>
+            <button onclick="resetGame()" style="
+                background: #8f7a66;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;">
+                Try Again
+            </button>
+        </div>
+        """
+    
+    st.markdown(grid_html, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # Close board
+    
+    # Direction buttons
+    st.markdown("""
+        <div class="button-row">
+            <button onclick="moveDirection('left')">⬅️ Left</button>
+            <button onclick="moveDirection('right')">➡️ Right</button>
+            <button onclick="moveDirection('up')">⬆️ Up</button>
+            <button onclick="moveDirection('down')">⬇️ Down</button>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Close game-container
+
+# Game logic functions
+def add_random_tile():
+    empty_cells = list(zip(*np.where(st.session_state.grid == 0)))
+    if empty_cells:
+        i, j = random.choice(empty_cells)
+        st.session_state.grid[i][j] = random.choice([2, 4])
 
 def compress_and_merge(row):
+    # Remove zeros
     new_row = row[row != 0]
     merged = []
     skip = False
@@ -173,15 +206,15 @@ def compress_and_merge(row):
         else:
             merged.append(new_row[i])
     
-    # Fill remaining spaces with zeros
+    # Fill with zeros if needed
     while len(merged) < 4:
         merged.append(0)
     
     return np.array(merged)
 
 def move(direction):
-    old_grid = st.session_state.grid.copy()
     moved = False
+    old_grid = st.session_state.grid.copy()
     
     if direction == 'left':
         for i in range(4):
@@ -212,20 +245,11 @@ def move(direction):
                 moved = True
     
     if moved:
-        # Update the Board component manually
-        st.toast("Move successful!")
-        
-        # Add new random tile
-        if not st.session_state.game_over:
-            empty_cells = list(zip(*np.where(st.session_state.grid == 0)))
-            if empty_cells:
-                i, j = random.choice(empty_cells)
-                st.session_state.grid[i][j] = random.choice([2, 4])
-    
-    # Check game over condition after move
-    check_game_over()
+        add_random_tile()
+        check_game_over()
 
 def check_game_over():
+    # Check if there are empty cells
     if np.any(st.session_state.grid == 0):
         st.session_state.game_over = False
         return
@@ -239,8 +263,6 @@ def check_game_over():
                 return
     
     st.session_state.game_over = True
-
-st.title("2048 Game")
 
 # Draw the initial board
 draw_board()
