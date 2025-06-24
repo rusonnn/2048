@@ -7,30 +7,34 @@ st.markdown("""
     <style>
         .tile {
             width: 100%;
-            aspect-ratio: 1 / 1;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 4.5vw;
-            border-radius: 0.5rem;
+            font-size: 4vw;
+            border-radius: 0.3rem;
             color: #776e65;
         }
         .board-row {
             display: flex;
-            gap: 1vw;
-            margin-bottom: 1vw;
+            gap: 0.5vw;
+            margin-bottom: 0.5vw;
         }
         .board-container {
-            max-width: 70vw;
+            max-width: 90vw;
             margin: auto;
+        }
+        .cell {
+            flex: 1;
+            aspect-ratio: 1 / 1;
         }
         @media (min-width: 768px) {
             .tile {
-                font-size: 2vw;
+                font-size: 1.5vw;
             }
             .board-container {
-                max-width: 400px;
+                max-width: 320px;
             }
         }
     </style>
@@ -58,11 +62,10 @@ def draw_board():
     st.markdown('<div class="board-container">', unsafe_allow_html=True)
     for row in st.session_state.grid:
         st.markdown('<div class="board-row">', unsafe_allow_html=True)
-        cols = st.columns(4)
-        for i, val in enumerate(row):
+        for val in row:
             bg = get_tile_color(val)
             txt = str(val) if val != 0 else ""
-            cols[i].markdown(f'<div class="tile" style="background-color: {bg};">{txt}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="cell"><div class="tile" style="background-color: {bg};">{txt}</div></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -105,14 +108,14 @@ def move(direction):
                 grid[i] = new_row
                 moved = True
         elif direction == 'up':
-            new_row = compress_and_merge(grid[:, i])
-            if not np.array_equal(grid[:, i], new_row):
-                grid[:, i] = new_row
+            new_col = compress_and_merge(grid[:, i])
+            if not np.array_equal(grid[:, i], new_col):
+                grid[:, i] = new_col
                 moved = True
         elif direction == 'down':
-            new_row = compress_and_merge(grid[::-1, i])[::-1]
-            if not np.array_equal(grid[:, i], new_row):
-                grid[:, i] = new_row
+            new_col = compress_and_merge(grid[::-1, i])[::-1]
+            if not np.array_equal(grid[:, i], new_col):
+                grid[:, i] = new_col
                 moved = True
     if moved:
         st.session_state.grid = grid
