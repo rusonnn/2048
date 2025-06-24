@@ -22,7 +22,7 @@ st.markdown("""
             margin-bottom: 0.5vw;
         }
         .board-container {
-            max-width: 90vw;
+            max-width: 25vw;
             margin: auto;
         }
         .cell {
