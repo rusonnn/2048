@@ -44,14 +44,19 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+st.markdown('<div class="board-container">', unsafe_allow_html=True)
+for row in st.session_state.grid:
+    st.markdown('<div class="board-row">', unsafe_allow_html=True)
+    for val in row:
+        bg = get_tile_color(val)
+        txt = str(val) if val != 0 else ""
+        st.markdown(
+            f'<div class="cell"><div class="tile" style="background-color: {bg};">{txt}</div></div>',
+            unsafe_allow_html=True
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-st.title("2048 (Responsive)")
-
-if "grid" not in st.session_state:
-    st.session_state.grid = np.zeros((4, 4), dtype=int)
-    for _ in range(2):
-        i, j = random.choice(list(zip(*np.where(st.session_state.grid == 0))))
-        st.session_state.grid[i][j] = random.choice([2, 4])
 
 
 def get_tile_color(val):
