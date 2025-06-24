@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2048 Game</title>
+  <style>
+    body {
+      background-color: #faf8ef;
+      font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 80px;
+      color: #776e65;
+      margin: 30px 0 10px;
+    }
+
+    #game-board {
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      gap: 10px;
+      padding: 10px;
+      background-color: #bbada0;
+      border-radius: 10px;
+      width: max-content;
+    }
+
+    .tile {
+      width: 100px;
+      height: 100px;
+      background: #cdc1b4;
+      font-size: 36px;
+      line-height: 100px;
+      text-align: center;
+      font-weight: bold;
+      color: #776e65;
+      border-radius: 5px;
+      transition: all 0.1s ease-in;
+    }
+
+    .tile[data-val="2"]    { background: #eee4da; color: #776e65; }
+    .tile[data-val="4"]    { background: #ede0c8; color: #776e65; }
+    .tile[data-val="8"]    { background: #f2b179; color: #f9f6f2; }
+    .tile[data-val="16"]   { background: #f59563; color: #f9f6f2; }
+    .tile[data-val="32"]   { background: #f67c5f; color: #f9f6f2; }
+    .tile[data-val="64"]   { background: #f65e3b; color: #f9f6f2; }
+    .tile[data-val="128"]  { background: #edcf72; color: #f9f6f2; }
+    .tile[data-val="256"]  { background: #edcc61; color: #f9f6f2; }
+    .tile[data-val="512"]  { background: #edc850; color: #f9f6f2; }
+    .tile[data-val="1024"] { background: #edc53f; color: #f9f6f2; }
+    .tile[data-val="2048"] { background: #edc22e; color: #f9f6f2; }
+    .tile[data-val="4096"] { background: #3c3a32; color: #f9f6f2; }
+  </style>
+</head>
+<body>
+  <h1>2048</h1>
+  <div id="game-board"></div>
+
+  <script>
+    const board = document.getElementById('game-board');
+    let grid = Array(4).fill(null).map(() => Array(4).fill(0));
+
+    function draw() {
+      board.innerHTML = '';
+      grid.forEach(row => {
+        row.forEach(cell => {
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+          tile.dataset.val = cell;
+          tile.textContent = cell === 0 ? '' : cell;
+          board.appendChild(tile);
+        });
+      });
+    }
+
+    function getEmptyCells() {
+      let empty = [];
+      for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+          if (grid[i][j] === 0) empty.push([i, j]);
+        }
+      }
+      return empty;
+    }
+
+    function addRandomTile() {
+      const empty = getEmptyCells();
+      if (empty.length === 0) return;
+      const [i, j] = empty[Math.floor(Math.random() * empty.length)];
+      grid[i][j] = Math.random() < 0.9 ? 2 : 4;
+    }
+
+    function compress(row) {
+      let newRow = row.filter(x => x !== 0);
+      while (newRow.length < 4) newRow.push(0);
+      return newRow;
+    }
+
+    function merge(row) {
+      for (let i = 0; i < 3; i++) {
+        if (row[i] !== 0 && row[i] === row[i+1]) {
+          row[i] *= 2;
+          row[i+1] = 0;
+        }
+      }
+      return row;
+    }
+
+    function operate(row) {
+      row = compress(row);
+      row = merge(row);
+      return compress(row);
+    }
+
+    function moveLeft() {
+      let moved = false;
+      for (let i = 0; i < 4; i++) {
+        const orig = [...grid[i]];
+        grid[i] = operate(grid[i]);
+        if (JSON.stringify(orig) !== JSON.stringify(grid[i])) moved = true;
+      }
+      if (moved) addRandomTile();
+      draw();
+    }
+
+    function moveRight() {
+      let moved = false;
+      for (let i = 0; i < 4; i++) {
+        const orig = [...grid[i]];
+        grid[i] = operate(grid[i].slice().reverse()).reverse();
+        if (JSON.stringify(orig) !== JSON.stringify(grid[i])) moved = true;
+      }
+      if (moved) addRandomTile();
+      draw();
+    }
+
+    function moveUp() {
+      let moved = false;
+      for (let j = 0; j < 4; j++) {
+        let col = grid.map(row => row[j]);
+        const orig = [...col];
+        col = operate(col);
+        for (let i = 0; i < 4; i++) grid[i][j] = col[i];
+        if (JSON.stringify(orig) !== JSON.stringify(col)) moved = true;
+      }
+      if (moved) addRandomTile();
+      draw();
+    }
+
+    function moveDown() {
+      let moved = false;
+      for (let j = 0; j < 4; j++) {
+        let col = grid.map(row => row[j]);
+        const orig = [...col];
+        col = operate(col.reverse()).reverse();
+        for (let i = 0; i < 4; i++) grid[i][j] = col[i];
+        if (JSON.stringify(orig) !== JSON.stringify(col)) moved = true;
+      }
+      if (moved) addRandomTile();
+      draw();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
+      if (e.key === "ArrowUp") moveUp();
+      if (e.key === "ArrowDown") moveDown();
+    });
+
+    addRandomTile();
+    addRandomTile();
+    draw();
+  </script>
+</body>
+</html>
