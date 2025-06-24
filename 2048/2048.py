@@ -15,6 +15,7 @@ st.markdown("""
             font-size: 20px;
             border-radius: 0.3rem;
             color: #776e65;
+            margin: 2px; /* Added margin for spacing */
         }
         .board-row {
             display: flex;
@@ -22,7 +23,7 @@ st.markdown("""
             margin-bottom: 5px;
         }
         .board-container {
-            width: 150px;
+            width: 310px;
             margin: auto;
         }
         .cell {
@@ -32,14 +33,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("2048 (Compact Grid)")
+st.title("2048 Game")
+st.write("Use the arrow keys or buttons to move the tiles. Combine them to reach 2048!")
 
 if "grid" not in st.session_state:
     st.session_state.grid = np.zeros((4, 4), dtype=int)
+    st.session_state.score = 0  # Initialize score
     for _ in range(2):
         i, j = random.choice(list(zip(*np.where(st.session_state.grid == 0))))
         st.session_state.grid[i][j] = random.choice([2, 4])
-
 
 def get_tile_color(val):
     return {
@@ -48,7 +50,6 @@ def get_tile_color(val):
         64: '#f65e3b', 128: '#edcf72', 256: '#edcc61',
         512: '#edc850', 1024: '#edc53f', 2048: '#edc22e'
     }.get(val, '#3c3a32')
-
 
 def draw_board():
     st.markdown('<div class="board-container">', unsafe_allow_html=True)
@@ -61,13 +62,11 @@ def draw_board():
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-
 def add_random_tile():
     empty = list(zip(*np.where(st.session_state.grid == 0)))
     if empty:
         i, j = random.choice(empty)
         st.session_state.grid[i][j] = random.choice([2, 4])
-
 
 def compress_and_merge(row):
     new = row[row != 0]
@@ -79,11 +78,11 @@ def compress_and_merge(row):
             continue
         if i + 1 < len(new) and new[i] == new[i + 1]:
             merged.append(new[i] * 2)
+            st.session_state.score += new[i] * 2  # Update score
             skip = True
         else:
             merged.append(new[i])
     return np.array(merged + [0] * (4 - len(merged)))
-
 
 def move(direction):
     moved = False
@@ -112,10 +111,23 @@ def move(direction):
     if moved:
         st.session_state.grid = grid
         add_random_tile()
+        if check_game_over():  # Check for game over after a move
+            st.session_state.game_over = True
 
+def check_game_over():
+    if np.any(st.session_state.grid == 0):
+        return False
+    for i in range(4):
+        for j in range(4):
+            if (i < 3 and st.session_state.grid[i, j] == st.session_state.grid[i + 1, j]) or \
+               (j < 3 and st.session_state.grid[i, j] == st.session_state.grid[i, j + 1]):
+                return False
+    return True
 
 def reset():
     st.session_state.grid = np.zeros((4, 4), dtype=int)
+    st.session_state.score = 0
+    st.session_state.game_over = False
     for _ in range(2):
         i, j = random.choice(list(zip(*np.where(st.session_state.grid == 0))))
         st.session_state.grid[i][j] = random.choice([2, 4])
@@ -129,6 +141,11 @@ if cols[2].button("⬆️"):
     move('up')
 if cols[3].button("⬇️"):
     move('down')
+
+if "game_over" in st.session_state and st.session_state.game_over:
+    st.write("Game Over! Your score: ", st.session_state.score)
+else:
+    st.write("Score: ", st.session_state.score)
 
 st.button("🔁 Restart Game", on_click=reset)
 
