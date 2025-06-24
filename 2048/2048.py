@@ -12,7 +12,7 @@ st.markdown("""
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 6vw;
+            font-size: 4.5vw;
             border-radius: 0.5rem;
             color: #776e65;
         }
@@ -22,8 +22,16 @@ st.markdown("""
             margin-bottom: 1vw;
         }
         .board-container {
-            max-width: 90vw;
+            max-width: 70vw;
             margin: auto;
+        }
+        @media (min-width: 768px) {
+            .tile {
+                font-size: 2vw;
+            }
+            .board-container {
+                max-width: 400px;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
