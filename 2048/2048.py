@@ -5,43 +5,44 @@ import random
 st.set_page_config(page_title="2048 Game", layout="centered")
 st.markdown("""
    <style>
-    .tile {
-        width: 10%;
-        height: 10%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 6vw;
-        border-radius: 0.3rem;
-        color: #776e65;
-    }
-    .board-row {
-        display: flex;
-        gap: 2vw;
-        margin-bottom: 2vw;
-    }
-    .board-container {
-        max-width: 90vw;
-        margin: auto;
-    }
-    .cell {
-        flex: 1;
-        aspect-ratio: 1 / 1;
-    }
-    @media (min-width: 768px) {
-        .tile {
-            font-size: 2vw;
-        }
         .board-container {
-            max-width: 40vw;
+            width: 90vw;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2vw 0;
         }
         .board-row {
-            gap: 0.5vw;
-            margin-bottom: 0.5vw;
+            display: flex;
         }
-    }
-</style>
+        .cell {
+            flex: 1 1 0%;
+            aspect-ratio: 1 / 1;
+            margin: 2px;
+        }
+        .tile {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 6vw;
+            min-height: 0;
+            min-width: 0;
+            border-radius: 0.3rem;
+            color: #776e65;
+            box-sizing: border-box;
+        }
+        @media (min-width: 500px) {
+            .board-container {
+                width: 400px;
+                max-width: 400px;
+            }
+            .tile {
+                font-size: 2rem;
+            }
+        }
+    </style>
 """, unsafe_allow_html=True)
 
 st.title("2048 (Responsive)")
